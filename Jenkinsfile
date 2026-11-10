@@ -59,10 +59,16 @@ pipeline {
                     }
                     steps{
                         sh'''
-                            npm install serve
-                            node_modules/.bin/serve -s build &
-                            sleep 10
-                            npx playwright test --reporter=html
+                              npm config set registry https://registry.npmmirror.com
+            npm config set replace-registry-host always
+            npm config set fetch-timeout 300000
+            npm config set fetch-retries 5
+            npm config set fetch-retry-mintimeout 20000
+            npm config set fetch-retry-maxtimeout 120000
+            npm install serve --no-audit --no-fund
+            node_modules/.bin/serve -s build &
+            sleep 10
+            npx playwright test --reporter=html
                         '''
                     }
                     
@@ -91,8 +97,15 @@ pipeline {
                     steps {
 
                       sh'''
-                          npm install netlify-cli
-                          node_modules/.bin/netlify --version
+                              npm config set registry https://registry.npmmirror.com
+                            npm config set replace-registry-host always
+                            npm config set fetch-timeout 300000
+                            npm config set fetch-retries 5
+                            npm config set fetch-retry-mintimeout 20000
+                            npm config set fetch-retry-maxtimeout 120000
+                            npm install netlify-cli --no-audit --no-fund
+                            npm install netlify-cli
+                             node_modules/.bin/netlify --version
                         '''
 
                       }
