@@ -93,33 +93,30 @@ pipeline {
                  stage('Deploy') {
                      agent{
                            docker{
-                               image 'node:18-alpine'
+                               image 'node:20-alpine'
                                reuseNode true
                              }
                          }
                     steps {
-
-                      sh'''
-                            npm config set registry https://registry.npmmirror.com
-                            npm config set replace-registry-host always
-                            npm config set fetch-timeout 300000
-                            npm config set fetch-retries 5
-                            npm config set fetch-retry-mintimeout 20000
-                            npm config set fetch-retry-maxtimeout 120000
-
-                            # sharp telecharge son binaire depuis GitHub (bloque chez toi) -> on utilise le miroir
-                            export npm_config_sharp_binary_host="https://npmmirror.com/mirrors/sharp"
-                            export npm_config_sharp_libvips_binary_host="https://npmmirror.com/mirrors/sharp-libvips"
-
-                            npm install netlify-cli --no-audit --no-fund
-                            node_modules/.bin/netlify --version
-                            echo "Deploying to production, Site ID: $NETLIFY_SITE_ID"
-                            node_modules/.bin/netlify status
-                             node_modules/.bin/netlify deploy --dir=build --prod
-
-                        '''
-
-                      }
+    sh '''
+        npm config set registry https://registry.npmmirror.com
+        npm config set replace-registry-host always
+        npm config set fetch-timeout 300000
+        npm config set fetch-retries 5
+        npm config set fetch-retry-mintimeout 20000
+        npm config set fetch-retry-maxtimeout 120000
+        export npm_config_sharp_binary_host="https://npmmirror.com/mirrors/sharp"
+        export npm_config_sharp_libvips_binary_host="https://npmmirror.com/mirrors/sharp-libvips"
+        npm install netlify-cli --no-audit --no-fund
+        node_modules/.bin/netlify --version
+    '''
+    retry(5) {
+        sh '''
+            echo "Deploying to production, Site ID: $NETLIFY_SITE_ID"
+            node_modules/.bin/netlify deploy --dir=build --prod
+        '''
+    }
+}
         }
             }
         }
